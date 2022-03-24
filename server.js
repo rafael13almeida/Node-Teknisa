@@ -51,6 +51,96 @@ app.post('/createProgrammer', async (req, res) => {
       res.send(error);
     }
   });
+
+  app.get('/retrieveProgrammer', async (req, res) => {
+    try {
+      const params = req.query;
+   
+      if ('id' in params) {
+        const record = await programmer.findByPk(params.id);
+   
+        if (record) {
+          res.send(record);
+        } else {
+          res.send('No programmer found using received ID');
+        }
+   
+        return;
+      }
+   
+      const records = await programmer.findAll();
+   
+      res.send(records);
+    } catch (error) {
+      res.send(error);
+    }
+  });
+
+  app.put('/updateProgrammer', async (req, res) => {
+    try {
+      const params = req.body;
+   
+      if (!('id' in params)) {
+        res.send(`Missing 'id' in request body`);
+        return;
+      }
+   
+      const record = await programmer.findByPk(params.id);
+   
+      if (!record) {
+        res.send(`Programmer ID not found.`);
+        return;
+      }
+   
+      const properties = ['name', 'python', 'java', 'javascript'];
+   
+      const check = properties.some((property) => {
+        return property in params;
+      });
+   
+      if (!check) {
+        const propStr = properties.join(', ');
+        res.send(`Request body doesn't have any of the following properties: ${propStr}`);
+        return;
+      }
+      
+      //Buscar melhoria
+      record.name = params.name || record.name;
+      record.python = 'python' in params ? params.python : record.python;
+      record.java = 'java' in params ? params.java : record.java;
+      record.javascript = 'javascript' in params ? params.javascript : record.javascript;
+   
+      await record.save();
+   
+      res.send(`${record.id} ${record.name} - Updated successfully`);
+    } catch (error) {
+      res.send(error);
+    }
+  });
+
+  app.delete('/deleteProgrammer', async (req, res) => {
+    try {
+      const params = req.body;
+   
+      if (!('id' in params)) {
+        res.send(`Missing 'id' in request body`);
+        return;
+      }
+       
+      const record = await programmer.findByPk(params.id);
+     
+      if (!record) {
+        res.send(`Programmer ID not found.`);
+        return;
+      }
+   
+      await record.destroy();
+   
+      res.send(`${record.id} ${record.name} - Deleted successfully`);
+    } catch (error) {
+      res.send(error);
+    }
+  });
  
 app.listen(port, () => {
   console.log(`Now listening on port ${port}`);
